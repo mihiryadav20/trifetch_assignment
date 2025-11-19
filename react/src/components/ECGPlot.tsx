@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react'
 import Plot from 'react-plotly.js'
+import { Link } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import type { Layout, Config } from 'plotly.js'
 
 interface ECGData {
   event_id: string
@@ -108,7 +110,7 @@ export default function ECGPlot({ data }: ECGPlotProps) {
     },
   })
 
-  const layout = {
+  const layout: Partial<Layout> = {
     autosize: true,
     height: 600,
     paper_bgcolor: 'rgba(0,0,0,0)',
@@ -150,17 +152,17 @@ export default function ECGPlot({ data }: ECGPlotProps) {
       borderwidth: 1,
       font: { color: 'hsl(var(--foreground))' },
     },
-    hovermode: 'closest',
+    hovermode: 'closest' as const,
     margin: { l: 60, r: 40, t: 40, b: 60 },
   }
 
-  const config = {
+  const config: Partial<Config> = {
     responsive: true,
     displayModeBar: true,
     displaylogo: false,
-    modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+    modeBarButtonsToRemove: ['lasso2d', 'select2d'] as any,
     toImageButtonOptions: {
-      format: 'png',
+      format: 'png' as any,
       filename: `ecg_${data.event_id}`,
       height: 800,
       width: 1400,
@@ -182,7 +184,12 @@ export default function ECGPlot({ data }: ECGPlotProps) {
                 Event ID: <span className="font-mono font-semibold">{data.event_id}</span>
               </CardDescription>
               <CardDescription className="mt-1">
-                Patient ID: <span className="font-mono text-xs">{data.patient_id}</span>
+                Patient ID: <Link 
+                  to={`/patient/${data.patient_id}`}
+                  className="font-mono text-xs text-primary hover:underline cursor-pointer"
+                >
+                  {data.patient_id}
+                </Link>
               </CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
