@@ -1,10 +1,10 @@
-import { ThemeProvider } from "@/components/ui/theme-provider"
+import { PatientList } from "@/components/PatientList"
 
-function App({ children }: { children: React.ReactNode }) {
+function App() {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      {children}
-    </ThemeProvider>
+    <div className="min-h-screen bg-background text-foreground">
+      <PatientList />
+    </div>
   )
 }
 

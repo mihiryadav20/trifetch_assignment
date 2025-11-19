@@ -11,7 +11,7 @@ Example: `http://127.0.0.1:8000`
 ---
 
 ## Endpoints
-
+ 
 ### 1. Get All Patients
 
 - **HTTP Method:** `GET`
