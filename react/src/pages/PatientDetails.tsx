@@ -50,7 +50,7 @@ export function PatientDetails() {
 
   if (error) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-6 mt-12">
         <Link to="/">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -63,7 +63,7 @@ export function PatientDetails() {
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 mt-12">
       <Link to="/">
         <Button variant="ghost" className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -100,16 +100,14 @@ export function PatientDetails() {
                   <span className="text-sm text-muted-foreground">Start Sample:</span>
                   <span className="font-mono text-sm">{episode.start_sample}</span>
                 </div>
-                <Button 
-                  variant="outline" 
-                  className="w-full mt-4"
-                  onClick={() => {
-                    // Future: Navigate to event details page
-                    console.log('View event details:', episode.event_id)
-                  }}
-                >
-                  View Details
-                </Button>
+                <Link to={`/event/${episode.event_id}`} className="w-full">
+                  <Button 
+                    variant="outline" 
+                    className="w-full mt-4"
+                  >
+                    View ECG Details
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>

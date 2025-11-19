@@ -13,6 +13,12 @@ from pathlib import Path
 from typing import List, Dict, Any
 import sqlite3
 import numpy as np
+import os
+from dotenv import load_dotenv
+from groq import Groq
+
+# Load environment variables
+load_dotenv()
 
 
 # ============================================================================
@@ -23,6 +29,12 @@ DB_PATH = Path("processed/manifest.db")
 DOWNSAMPLE_FACTOR = 4  # Reduce 200 Hz to 50 Hz for display
 ORIGINAL_SAMPLE_RATE = 200  # Hz
 DISPLAY_SAMPLE_RATE = ORIGINAL_SAMPLE_RATE // DOWNSAMPLE_FACTOR  # 50 Hz
+
+# Initialize Groq client
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    raise ValueError("GROQ_API_KEY environment variable not set")
+groq_client = Groq(api_key=GROQ_API_KEY)
 
 
 # ============================================================================
@@ -59,6 +71,8 @@ def get_db() -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     return conn
 
+
+from classifier import classify_ecg_event
 
 # ============================================================================
 # API Endpoints
@@ -155,6 +169,13 @@ def get_event(event_id: str):
     num_samples = len(ecg_display)
     time_seconds = [i / DISPLAY_SAMPLE_RATE for i in range(num_samples)]
     
+    # Classify the event using Groq vision model
+    predicted_type, confidence = classify_ecg_event(
+        row["ecg_path"], 
+        row["start_sample"], 
+        row["event_name"]
+    )
+    
     return {
         "event_id": event_id,
         "patient_id": row["patient_id"],
@@ -163,6 +184,6 @@ def get_event(event_id: str):
         "ecg": ecg_display.tolist(),  # [[ch1, ch2], [ch1, ch2], ...]
         "time_seconds": time_seconds,
         "start_sample_display": row["start_sample"] // DOWNSAMPLE_FACTOR,
-        "predicted": row["event_name"],  # TODO: Replace with ML classifier
-        "confidence": 0.98  # TODO: Replace with actual confidence score
+        "predicted": predicted_type,
+        "confidence": confidence
     }

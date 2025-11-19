@@ -80,7 +80,17 @@ export const columns: ColumnDef<Episode>[] = [
   {
     accessorKey: "event_id",
     header: "Event ID",
-    cell: ({ row }) => <div>{row.getValue("event_id")}</div>,
+    cell: ({ row }) => {
+      const eventId = row.getValue("event_id") as string
+      return (
+        <Link 
+          to={`/event/${eventId}`}
+          className="font-mono text-primary hover:underline"
+        >
+          {eventId}
+        </Link>
+      )
+    },
   },
   {
     accessorKey: "event_name",
