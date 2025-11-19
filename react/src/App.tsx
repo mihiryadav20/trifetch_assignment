@@ -1,15 +1,10 @@
-import { Button } from "@/components/ui/button"
-import { useTheme } from "./components/ui/theme-provider"
+import { ThemeProvider } from "@/components/ui/theme-provider"
 
-function App() {
-  const { theme, setTheme } = useTheme()
-
+function App({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center bg-background text-foreground">
-      <Button onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>
-        {theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-      </Button>
-    </div>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      {children}
+    </ThemeProvider>
   )
 }
 
