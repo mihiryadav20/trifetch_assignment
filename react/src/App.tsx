@@ -1,18 +1,17 @@
-import { EpisodesDataTable } from "@/components/EpisodesDataTable"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { Home } from "@/pages/Home"
+import { PatientDetails } from "@/pages/PatientDetails"
 
 function App() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="container mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">TriFetch - Cardiac Events Dashboard</h1>
-          <p className="text-muted-foreground">
-            View and manage all cardiac events across patients
-          </p>
-        </div>
-        <EpisodesDataTable />
+    <BrowserRouter>
+      <div className="min-h-screen bg-background text-foreground">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/patient/:patientId" element={<PatientDetails />} />
+        </Routes>
       </div>
-    </div>
+    </BrowserRouter>
   )
 }
 

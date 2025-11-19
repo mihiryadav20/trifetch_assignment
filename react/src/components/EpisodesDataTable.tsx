@@ -14,9 +14,9 @@ import type {
   VisibilityState,
 } from "@tanstack/react-table"
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
+import { Link } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -35,39 +35,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 export type Episode = {
   patient_id: string
   event_id: string
   event_name: string
-  event_index: number
-  is_rejected: number
-  start_sample: number
 }
 
 export const columns: ColumnDef<Episode>[] = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
   {
     accessorKey: "patient_id",
     header: ({ column }) => {
@@ -81,7 +65,17 @@ export const columns: ColumnDef<Episode>[] = [
         </Button>
       )
     },
-    cell: ({ row }) => <div className="font-medium">{row.getValue("patient_id")}</div>,
+    cell: ({ row }) => {
+      const patientId = row.getValue("patient_id") as string
+      return (
+        <Link 
+          to={`/patient/${patientId}`}
+          className="font-medium text-primary hover:underline"
+        >
+          {patientId}
+        </Link>
+      )
+    },
   },
   {
     accessorKey: "event_id",
@@ -105,33 +99,7 @@ export const columns: ColumnDef<Episode>[] = [
       <div className="capitalize font-semibold">{row.getValue("event_name")}</div>
     ),
   },
-  {
-    accessorKey: "event_index",
-    header: () => <div className="text-right">Event Index</div>,
-    cell: ({ row }) => {
-      return <div className="text-right font-medium">{row.getValue("event_index")}</div>
-    },
-  },
-  {
-    accessorKey: "start_sample",
-    header: () => <div className="text-right">Start Sample</div>,
-    cell: ({ row }) => {
-      return <div className="text-right">{row.getValue("start_sample")}</div>
-    },
-  },
-  {
-    accessorKey: "is_rejected",
-    header: "Status",
-    cell: ({ row }) => {
-      const isRejected = row.getValue("is_rejected") as number
-      return (
-        <div className={isRejected ? "text-red-500" : "text-green-500"}>
-          {isRejected ? "Rejected" : "Valid"}
-        </div>
-      )
-    },
-  },
-  {
+    {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
@@ -169,7 +137,6 @@ export function EpisodesDataTable() {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
 
   React.useEffect(() => {
     const fetchAllEpisodes = async () => {
@@ -189,15 +156,12 @@ export function EpisodesDataTable() {
           )
           if (episodesResponse.ok) {
             const episodes = await episodesResponse.json()
-            // Add patient_id to each episode and create event_index
-            episodes.forEach((episode: any, index: number) => {
+            // Add patient_id to each episode
+            episodes.forEach((episode: any) => {
               allEpisodes.push({
                 patient_id: patient.patient_id,
                 event_id: episode.event_id,
                 event_name: episode.event_name,
-                event_index: index + 1,
-                is_rejected: episode.is_rejected,
-                start_sample: episode.start_sample,
               })
             })
           }
@@ -224,12 +188,10 @@ export function EpisodesDataTable() {
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
     },
   })
 
@@ -345,29 +307,73 @@ export function EpisodesDataTable() {
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="text-muted-foreground flex-1 text-sm">
-          {table.getFilteredSelectedRowModel().rows.length} of{" "}
-          {table.getFilteredRowModel().rows.length} row(s) selected.
+      <div className="flex items-center justify-between py-4">
+        <div className="text-muted-foreground text-sm">
+          {table.getFilteredRowModel().rows.length} row(s) total.
         </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
-        </div>
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious 
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault()
+                  table.previousPage()
+                }}
+                className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+            
+            {Array.from({ length: table.getPageCount() }, (_, i) => i).map((pageIndex) => {
+              const currentPage = table.getState().pagination.pageIndex
+              const totalPages = table.getPageCount()
+              
+              // Show first page, last page, current page, and pages around current
+              if (
+                pageIndex === 0 ||
+                pageIndex === totalPages - 1 ||
+                (pageIndex >= currentPage - 1 && pageIndex <= currentPage + 1)
+              ) {
+                return (
+                  <PaginationItem key={pageIndex}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        table.setPageIndex(pageIndex)
+                      }}
+                      isActive={currentPage === pageIndex}
+                      className="cursor-pointer"
+                    >
+                      {pageIndex + 1}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              } else if (
+                pageIndex === currentPage - 2 ||
+                pageIndex === currentPage + 2
+              ) {
+                return (
+                  <PaginationItem key={pageIndex}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                )
+              }
+              return null
+            })}
+            
+            <PaginationItem>
+              <PaginationNext 
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault()
+                  table.nextPage()
+                }}
+                className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </div>
     </div>
   )
